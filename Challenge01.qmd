@@ -1,0 +1,117 @@
+---
+title: "My Lab Journal"
+subtitle: "Business Decisions with Machine Learning"
+author: "Drew Gilmore"
+---
+
+# Step 1
+```{r, echo = T , warning=FALSE, error=FALSE, message=FALSE}
+
+library(tidyverse)
+library(tidyquant)
+library(broom)
+library(umap)
+
+sp_500_daily_returns_tbl  <- read_rds("Challenge 1/sp_500_prices_tbl.rds") %>%
+  select(symbol, date, adjusted) %>%
+  filter(year(date) >= 2018 ) %>%
+  group_by(symbol) %>%
+  mutate(lagPrice = lag(adjusted, n = 1L)) %>%
+  filter(is.na(lagPrice) == 0) %>%
+  mutate(priceDif = adjusted - lagPrice) %>%
+  mutate(pct_return = priceDif/lagPrice) %>%
+  ungroup(symbol) %>%
+  select(symbol, date, pct_return)
+
+head(sp_500_daily_returns_tbl, n = 10)
+```
+
+# Step 2
+```{r, echo = T , warning=FALSE, error=FALSE, message=FALSE}
+stock_date_matrix_tbl <- sp_500_daily_returns_tbl %>%
+  pivot_wider(names_from = date, values_from = pct_return)
+head(stock_date_matrix_tbl, n=10)
+```
+
+# Step 3
+```{r, echo = T , warning=FALSE, error=FALSE, message=FALSE}
+stock_date_matrix_tbl <- read_rds("Challenge 1/stock_date_matrix_tbl.rds")
+
+kmeans_obj <- stock_date_matrix_tbl %>% 
+  select(-symbol) %>%
+  kmeans(centers = 4, nstart = 20)
+
+broom::glance(kmeans_obj)
+```
+
+# Step 4
+```{r plot, echo = T , warning=FALSE, error=FALSE, message=FALSE}
+kmeans_mapper <- function(center = 3) {
+  stock_date_matrix_tbl %>%
+    select(-symbol) %>%
+    kmeans(centers = center, nstart = 20)
+}
+
+kmeans_mapped_tbl <- tibble(centers = 1:30) %>%
+  mutate(k_means = centers %>% map(kmeans_mapper)) %>%
+  mutate(glance  = k_means %>% map(glance))
+
+kmeans_mapped_tbl %>%
+  unnest(glance) %>%
+  select(centers, tot.withinss) %>%
+  ggplot(aes(centers, tot.withinss)) +
+  geom_point(color = "black", size = 4) +
+  geom_line(color = "gray", size = 1) +
+  ggrepel::geom_label_repel(aes(label = centers), color = "black") +
+  theme_minimal() +
+  labs(title = "Skree Plot")
+```
+
+# Step 5
+```{r plot2, echo = T , warning=FALSE, error=FALSE, message=FALSE}
+k_means_mapped_tbl <- read_rds("Challenge 1/k_means_mapped_tbl.rds")
+
+umap_results <- stock_date_matrix_tbl %>%
+  select(-symbol) %>%
+  umap()
+
+umap_results_tbl <- umap_results$layout %>%
+  as_tibble(.name_repair = "unique") %>% 
+  set_names(c("V1", "V2")) %>%
+  bind_cols(
+    stock_date_matrix_tbl %>% select(symbol)
+  )
+
+umap_results_tbl %>%
+  ggplot(aes(V1, V2)) +
+  geom_point(alpha = 0.5) + 
+  labs(title = "UMAP Projection") +
+  theme_tq()
+```
+
+# Step 6
+```{r plot3, echo = T , warning=FALSE, error=FALSE, message=FALSE}
+k_means_mapped_tbl <- read_rds("Challenge 1/k_means_mapped_tbl.rds")
+umap_results_tbl   <- read_rds("Challenge 1/umap_results_tbl.rds")
+sp_500_index_tbl <- read_rds("Challenge 1/sp_500_index_tbl.rds")
+
+kmeans_10_obj <- k_means_mapped_tbl %>%
+  pull(k_means) %>%
+  pluck(10)
+
+kmeans_10_clusters_tbl <- kmeans_10_obj %>% 
+  augment(stock_date_matrix_tbl) %>%
+  select(symbol, .cluster)
+
+umap_kmeans_results_tbl <- umap_results_tbl %>%
+  left_join(kmeans_10_clusters_tbl, by = join_by(symbol)) %>%
+  left_join(sp_500_index_tbl %>%
+              select(symbol, company, sector),
+              by = join_by(symbol))
+
+umap_kmeans_results_tbl %>%
+  ggplot(aes(V1, V2, color = .cluster)) +
+  geom_point(alpha = 0.5) +
+  scale_color_brewer(palette = "Set1") +
+  labs(title = "Company Segmentation: 2D Projection")
+```
