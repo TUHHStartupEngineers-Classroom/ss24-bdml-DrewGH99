@@ -8,7 +8,7 @@
 
 <meta name="author" content="Drew Gilmore">
 
-<title>MyLabJournal - Machine Learning Fundamentals</title>
+<title>MyLabJournal - Supervised ML - Regression</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -77,9 +77,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
-<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
-<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -182,7 +179,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Machine Learning Fundamentals</h1>
+<h1 class="title">Supervised ML - Regression</h1>
 <p class="subtitle lead">Business Decisions with Machine Learning</p>
 </div>
 
@@ -204,189 +201,94 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<section id="step-1" class="level1">
-<h1>Step 1</h1>
-<div class="cell" data-hash="Challenge01_cache/html/unnamed-chunk-1_a27030f8c582cb0cc053c01f3d4ea1ce">
+<div class="cell" data-hash="Challenge02_cache/html/unnamed-chunk-1_16300773c39ef0dc2454e9ee10f47239">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyquant)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(umap)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>sp_500_daily_returns_tbl  <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"Challenge 1/sp_500_prices_tbl.rds"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(symbol, date, adjusted) <span class="sc">%&gt;%</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">year</span>(date) <span class="sc">&gt;=</span> <span class="dv">2018</span> ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(symbol) <span class="sc">%&gt;%</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">lagPrice =</span> <span class="fu">lag</span>(adjusted, <span class="at">n =</span> 1L)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(lagPrice) <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">priceDif =</span> adjusted <span class="sc">-</span> lagPrice) <span class="sc">%&gt;%</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct_return =</span> priceDif<span class="sc">/</span>lagPrice) <span class="sc">%&gt;%</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>(symbol) <span class="sc">%&gt;%</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(symbol, date, pct_return)</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sp_500_daily_returns_tbl, <span class="at">n =</span> <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(parsnip)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(recipes)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rsample)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(yardstick)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Build Model ----</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>lm_mod <span class="ot">&lt;-</span> </span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">linear_reg</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"lm"</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Create Features with Recipes Package ---- </span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>bike_features_tbl <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"Challenge 2/bike_features_tbl.rds"</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># data manipulation to select predictors and outcome</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>bike_features_tbl <span class="ot">&lt;-</span> bike_features_tbl <span class="sc">%&gt;%</span> </span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(model<span class="sc">:</span>url, <span class="st">`</span><span class="at">Rear Derailleur</span><span class="st">`</span>, <span class="st">`</span><span class="at">Shift Lever</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">row_number</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, <span class="fu">everything</span>(), <span class="sc">-</span>url)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co">#  Split data ----</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="at">seed =</span> <span class="dv">1114</span>)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>split_obj <span class="ot">&lt;-</span> rsample<span class="sc">::</span><span class="fu">initial_split</span>(bike_features_tbl, <span class="at">prop   =</span> <span class="fl">0.80</span>, </span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">strata =</span> <span class="st">"category_2"</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>train_tbl <span class="ot">&lt;-</span> <span class="fu">training</span>(split_obj)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>test_tbl  <span class="ot">&lt;-</span> <span class="fu">testing</span>(split_obj)</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>train_tbl <span class="ot">&lt;-</span> train_tbl <span class="sc">%&gt;%</span> <span class="fu">set_names</span>(<span class="fu">str_replace_all</span>(<span class="fu">names</span>(train_tbl), <span class="st">" |-"</span>, <span class="st">"_"</span>))</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>test_tbl  <span class="ot">&lt;-</span> test_tbl  <span class="sc">%&gt;%</span> <span class="fu">set_names</span>(<span class="fu">str_replace_all</span>(<span class="fu">names</span>(test_tbl),  <span class="st">" |-"</span>, <span class="st">"_"</span>))</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Recipe ----</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="co">#Create recipe</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>train_recipe_obj <span class="ot">&lt;-</span> <span class="fu">recipe</span>(price <span class="sc">~</span> ., <span class="at">data =</span> train_tbl) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  <span class="co">#step_rm(...) %&gt;% </span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>(), <span class="sc">-</span><span class="fu">all_outcomes</span>(), <span class="at">one_hot =</span> T) <span class="sc">%&gt;%</span>  <span class="co"># using all nominal predictors here prevented errors</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">update_role</span>(id, model, <span class="at">new_role =</span> <span class="st">"ID"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>()) </span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  <span class="co">#prep()</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>test_recipe_obj <span class="ot">&lt;-</span> <span class="fu">recipe</span>(price <span class="sc">~</span> ., <span class="at">data =</span> test_tbl) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  <span class="co">#step_rm(...) %&gt;% </span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal</span>(), <span class="sc">-</span><span class="fu">all_outcomes</span>(), <span class="at">one_hot =</span> T) <span class="sc">%&gt;%</span>  <span class="co"># Check out the argument one_hot = T</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">update_role</span>(id, model, <span class="at">new_role =</span> <span class="st">"ID"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>())</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>  <span class="co">#prep()</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="co">#train_transformed_tbl &lt;- bake(train_recipe_obj, train_tbl)</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="co">#test_transformed_tbl  &lt;- bake(test_recipe_obj, test_tbl)</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="co"># workflow ----</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="co">#create workflow</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>bikes_workflow <span class="ot">&lt;-</span></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(lm_mod) <span class="sc">%&gt;%</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(train_recipe_obj)</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="co">#fit to training data</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>bikes_fit <span class="ot">&lt;-</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>  bikes_workflow <span class="sc">%&gt;%</span></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(<span class="at">data =</span> train_tbl)</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="co"># metrics ----</span></span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">&lt;-</span> <span class="fu">predict</span>(bikes_fit, <span class="at">new_data =</span> test_tbl) <span class="sc">%&gt;%</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(test_tbl <span class="sc">%&gt;%</span> <span class="fu">select</span>(price))</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>metrics <span class="ot">&lt;-</span> predictions <span class="sc">%&gt;%</span></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">metrics</span>(<span class="at">truth =</span> price, <span class="at">estimate =</span> .pred)</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>metrics</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 10 × 3
-   symbol date       pct_return
-   &lt;chr&gt;  &lt;date&gt;          &lt;dbl&gt;
- 1 MSFT   2018-01-03   0.00465 
- 2 MSFT   2018-01-04   0.00880 
- 3 MSFT   2018-01-05   0.0124  
- 4 MSFT   2018-01-08   0.00102 
- 5 MSFT   2018-01-09  -0.000680
- 6 MSFT   2018-01-10  -0.00453 
- 7 MSFT   2018-01-11   0.00296 
- 8 MSFT   2018-01-12   0.0173  
- 9 MSFT   2018-01-16  -0.0140  
-10 MSFT   2018-01-17   0.0203  </code></pre>
-</div>
-</div>
-</section>
-<section id="step-2" class="level1">
-<h1>Step 2</h1>
-<div class="cell" data-hash="Challenge01_cache/html/unnamed-chunk-2_c5a8df4ae2d0aa7a226dd694f80bcdac">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>stock_date_matrix_tbl <span class="ot">&lt;-</span> sp_500_daily_returns_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> date, <span class="at">values_from =</span> pct_return)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(stock_date_matrix_tbl, <span class="at">n=</span><span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 10 × 283
-   symbol `2018-01-03` `2018-01-04` `2018-01-05` `2018-01-08` `2018-01-09`
-   &lt;chr&gt;         &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;
- 1 MSFT       0.00465     0.00880       0.0124        0.00102    -0.000680
- 2 AAPL      -0.000174    0.00465       0.0114       -0.00371    -0.000115
- 3 AMZN       0.0128      0.00448       0.0162        0.0144      0.00468 
- 4 FB         0.0179     -0.00184       0.0137        0.00765    -0.00218 
- 5 JNJ        0.00955    -0.0000712     0.00825       0.00127     0.0159  
- 6 JPM        0.00102     0.0143       -0.00642       0.00148     0.00507 
- 7 GOOG       0.0164      0.00362       0.0146        0.00427    -0.000614
- 8 GOOGL      0.0171      0.00388       0.0133        0.00353    -0.00127 
- 9 XOM        0.0196      0.00138      -0.000806      0.00450    -0.00425 
-10 BAC       -0.00334     0.0131        0.00464      -0.00692     0.00498 
-# ℹ 277 more variables: `2018-01-10` &lt;dbl&gt;, `2018-01-11` &lt;dbl&gt;,
-#   `2018-01-12` &lt;dbl&gt;, `2018-01-16` &lt;dbl&gt;, `2018-01-17` &lt;dbl&gt;,
-#   `2018-01-18` &lt;dbl&gt;, `2018-01-19` &lt;dbl&gt;, `2018-01-22` &lt;dbl&gt;,
-#   `2018-01-23` &lt;dbl&gt;, `2018-01-24` &lt;dbl&gt;, `2018-01-25` &lt;dbl&gt;,
-#   `2018-01-26` &lt;dbl&gt;, `2018-01-29` &lt;dbl&gt;, `2018-01-30` &lt;dbl&gt;,
-#   `2018-01-31` &lt;dbl&gt;, `2018-02-01` &lt;dbl&gt;, `2018-02-02` &lt;dbl&gt;,
-#   `2018-02-05` &lt;dbl&gt;, `2018-02-06` &lt;dbl&gt;, `2018-02-07` &lt;dbl&gt;, …</code></pre>
-</div>
-</div>
-</section>
-<section id="step-3" class="level1">
-<h1>Step 3</h1>
-<div class="cell" data-hash="Challenge01_cache/html/unnamed-chunk-3_eae2157ce10b0b0c38b638b7703de6d5">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>stock_date_matrix_tbl <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"Challenge 1/stock_date_matrix_tbl.rds"</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>kmeans_obj <span class="ot">&lt;-</span> stock_date_matrix_tbl <span class="sc">%&gt;%</span> </span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>symbol) <span class="sc">%&gt;%</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kmeans</span>(<span class="at">centers =</span> <span class="dv">4</span>, <span class="at">nstart =</span> <span class="dv">20</span>)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(kmeans_obj)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 4
-  totss tot.withinss betweenss  iter
-  &lt;dbl&gt;        &lt;dbl&gt;     &lt;dbl&gt; &lt;int&gt;
-1  33.6         29.2      4.40     3</code></pre>
-</div>
-</div>
-</section>
-<section id="step-4" class="level1">
-<h1>Step 4</h1>
-<div class="cell" data-hash="Challenge01_cache/html/plot_d95620591eaed8d9bc5e3698442497b9">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>kmeans_mapper <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">center =</span> <span class="dv">3</span>) {</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  stock_date_matrix_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>symbol) <span class="sc">%&gt;%</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">kmeans</span>(<span class="at">centers =</span> center, <span class="at">nstart =</span> <span class="dv">20</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>kmeans_mapped_tbl <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">centers =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">30</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">k_means =</span> centers <span class="sc">%&gt;%</span> <span class="fu">map</span>(kmeans_mapper)) <span class="sc">%&gt;%</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">glance  =</span> k_means <span class="sc">%&gt;%</span> <span class="fu">map</span>(glance))</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>kmeans_mapped_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(glance) <span class="sc">%&gt;%</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(centers, tot.withinss) <span class="sc">%&gt;%</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(centers, tot.withinss)) <span class="sc">+</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"gray"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  ggrepel<span class="sc">::</span><span class="fu">geom_label_repel</span>(<span class="fu">aes</span>(<span class="at">label =</span> centers), <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Skree Plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="Challenge01_files/figure-html/plot-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="Challenge01_files/figure-html/plot-1.png" class="img-fluid figure-img" width="672"></a></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="step-5" class="level1">
-<h1>Step 5</h1>
-<div class="cell" data-hash="Challenge01_cache/html/plot2_aa7346e235685e4e7ed68befd31cb804">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>k_means_mapped_tbl <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"Challenge 1/k_means_mapped_tbl.rds"</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>umap_results <span class="ot">&lt;-</span> stock_date_matrix_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>symbol) <span class="sc">%&gt;%</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">umap</span>()</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>umap_results_tbl <span class="ot">&lt;-</span> umap_results<span class="sc">$</span>layout <span class="sc">%&gt;%</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>(<span class="at">.name_repair =</span> <span class="st">"unique"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_names</span>(<span class="fu">c</span>(<span class="st">"V1"</span>, <span class="st">"V2"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    stock_date_matrix_tbl <span class="sc">%&gt;%</span> <span class="fu">select</span>(symbol)</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>umap_results_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(V1, V2)) <span class="sc">+</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span> </span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"UMAP Projection"</span>) <span class="sc">+</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_tq</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="Challenge01_files/figure-html/plot2-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="Challenge01_files/figure-html/plot2-1.png" class="img-fluid figure-img" width="672"></a></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="step-6" class="level1">
-<h1>Step 6</h1>
-<div class="cell" data-hash="Challenge01_cache/html/plot3_b6186ee41ed78ffaaa3ac4c86c73b368">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>k_means_mapped_tbl <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"Challenge 1/k_means_mapped_tbl.rds"</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>umap_results_tbl   <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"Challenge 1/umap_results_tbl.rds"</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>sp_500_index_tbl <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"Challenge 1/sp_500_index_tbl.rds"</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>kmeans_10_obj <span class="ot">&lt;-</span> k_means_mapped_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(k_means) <span class="sc">%&gt;%</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pluck</span>(<span class="dv">10</span>)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>kmeans_10_clusters_tbl <span class="ot">&lt;-</span> kmeans_10_obj <span class="sc">%&gt;%</span> </span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">augment</span>(stock_date_matrix_tbl) <span class="sc">%&gt;%</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(symbol, .cluster)</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>umap_kmeans_results_tbl <span class="ot">&lt;-</span> umap_results_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(kmeans_10_clusters_tbl, <span class="at">by =</span> <span class="fu">join_by</span>(symbol)) <span class="sc">%&gt;%</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(sp_500_index_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>              <span class="fu">select</span>(symbol, company, sector),</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>              <span class="at">by =</span> <span class="fu">join_by</span>(symbol))</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>umap_kmeans_results_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(V1, V2, <span class="at">color =</span> .cluster)) <span class="sc">+</span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">palette =</span> <span class="st">"Set1"</span>) <span class="sc">+</span></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Company Segmentation: 2D Projection"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="Challenge01_files/figure-html/plot3-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="Challenge01_files/figure-html/plot3-1.png" class="img-fluid figure-img" width="672"></a></p>
-</figure>
-</div>
+<pre><code># A tibble: 3 × 3
+  .metric .estimator .estimate
+  &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+1 rmse    standard     980.   
+2 rsq     standard       0.734
+3 mae     standard     616.   </code></pre>
 </div>
 </div>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -738,7 +640,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
-<script>var lightboxQuarto = GLightbox({"openEffect":"zoom","selector":".lightbox","loop":true,"closeEffect":"zoom","descPosition":"bottom"});</script>
 
 
 
