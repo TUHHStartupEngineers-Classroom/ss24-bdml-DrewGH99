@@ -1,0 +1,14 @@
+{
+  "hash": "70adf6725bd2ee5e3dffd1c04131ada2",
+  "result": {
+    "markdown": "---\ntitle: \"Supervised ML - Regression\"\nsubtitle: \"Business Decisions with Machine Learning\"\nauthor: \"Drew Gilmore\"\n---\n\n::: {.cell hash='Challenge02_cache/html/unnamed-chunk-1_16300773c39ef0dc2454e9ee10f47239'}\n\n```{.r .cell-code}\nlibrary(tidyverse)\nlibrary(parsnip)\nlibrary(recipes)\nlibrary(rsample)\nlibrary(tidymodels)\nlibrary(yardstick)\n\n\n# Build Model ----\nlm_mod <- \n  linear_reg() %>% \n  set_engine(\"lm\")\n\n\n# Create Features with Recipes Package ---- \nbike_features_tbl <- readRDS(\"Challenge 2/bike_features_tbl.rds\")\n\n# data manipulation to select predictors and outcome\nbike_features_tbl <- bike_features_tbl %>% \n  select(model:url, `Rear Derailleur`, `Shift Lever`) %>% \n  mutate(id = row_number()) %>% \n  select(id, everything(), -url)\n\n#  Split data ----\nset.seed(seed = 1114)\nsplit_obj <- rsample::initial_split(bike_features_tbl, prop   = 0.80, \n                                    strata = \"category_2\")\n\ntrain_tbl <- training(split_obj)\ntest_tbl  <- testing(split_obj)\n\ntrain_tbl <- train_tbl %>% set_names(str_replace_all(names(train_tbl), \" |-\", \"_\"))\ntest_tbl  <- test_tbl  %>% set_names(str_replace_all(names(test_tbl),  \" |-\", \"_\"))\n\n\n# Recipe ----\n\n#Create recipe\ntrain_recipe_obj <- recipe(price ~ ., data = train_tbl) %>% \n  #step_rm(...) %>% \n  step_dummy(all_nominal_predictors(), -all_outcomes(), one_hot = T) %>%  # using all nominal predictors here prevented errors\n  update_role(id, model, new_role = \"ID\") %>%\n  step_zv(all_predictors()) \n  #prep()\n\ntest_recipe_obj <- recipe(price ~ ., data = test_tbl) %>% \n  #step_rm(...) %>% \n  step_dummy(all_nominal(), -all_outcomes(), one_hot = T) %>%  # Check out the argument one_hot = T\n  update_role(id, model, new_role = \"ID\") %>%\n  step_zv(all_predictors())\n  #prep()\n\n#train_transformed_tbl <- bake(train_recipe_obj, train_tbl)\n#test_transformed_tbl  <- bake(test_recipe_obj, test_tbl)\n\n# workflow ----\n#create workflow\nbikes_workflow <-\n  workflow() %>%\n  add_model(lm_mod) %>%\n  add_recipe(train_recipe_obj)\n\n#fit to training data\nbikes_fit <-\n  bikes_workflow %>%\n  fit(data = train_tbl)\n\n\n# metrics ----\npredictions <- predict(bikes_fit, new_data = test_tbl) %>%\n  bind_cols(test_tbl %>% select(price))\n\nmetrics <- predictions %>%\n  yardstick::metrics(truth = price, estimate = .pred)\n\nmetrics\n```\n\n::: {.cell-output .cell-output-stdout}\n```\n# A tibble: 3 × 3\n  .metric .estimator .estimate\n  <chr>   <chr>          <dbl>\n1 rmse    standard     980.   \n2 rsq     standard       0.734\n3 mae     standard     616.   \n```\n:::\n:::",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

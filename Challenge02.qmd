@@ -1,0 +1,85 @@
+---
+title: "Supervised ML - Regression"
+subtitle: "Business Decisions with Machine Learning"
+author: "Drew Gilmore"
+---
+
+```{r, echo = T , warning=FALSE, error=FALSE, message=FALSE}
+library(tidyverse)
+library(parsnip)
+library(recipes)
+library(rsample)
+library(tidymodels)
+library(yardstick)
+
+
+# Build Model ----
+lm_mod <- 
+  linear_reg() %>% 
+  set_engine("lm")
+
+
+# Create Features with Recipes Package ---- 
+bike_features_tbl <- readRDS("Challenge 2/bike_features_tbl.rds")
+
+# data manipulation to select predictors and outcome
+bike_features_tbl <- bike_features_tbl %>% 
+  select(model:url, `Rear Derailleur`, `Shift Lever`) %>% 
+  mutate(id = row_number()) %>% 
+  select(id, everything(), -url)
+
+#  Split data ----
+set.seed(seed = 1114)
+split_obj <- rsample::initial_split(bike_features_tbl, prop   = 0.80, 
+                                    strata = "category_2")
+
+train_tbl <- training(split_obj)
+test_tbl  <- testing(split_obj)
+
+train_tbl <- train_tbl %>% set_names(str_replace_all(names(train_tbl), " |-", "_"))
+test_tbl  <- test_tbl  %>% set_names(str_replace_all(names(test_tbl),  " |-", "_"))
+
+
+# Recipe ----
+
+#Create recipe
+train_recipe_obj <- recipe(price ~ ., data = train_tbl) %>% 
+  #step_rm(...) %>% 
+  step_dummy(all_nominal_predictors(), -all_outcomes(), one_hot = T) %>%  # using all nominal predictors here prevented errors
+  update_role(id, model, new_role = "ID") %>%
+  step_zv(all_predictors()) 
+  #prep()
+
+test_recipe_obj <- recipe(price ~ ., data = test_tbl) %>% 
+  #step_rm(...) %>% 
+  step_dummy(all_nominal(), -all_outcomes(), one_hot = T) %>%  # Check out the argument one_hot = T
+  update_role(id, model, new_role = "ID") %>%
+  step_zv(all_predictors())
+  #prep()
+
+#train_transformed_tbl <- bake(train_recipe_obj, train_tbl)
+#test_transformed_tbl  <- bake(test_recipe_obj, test_tbl)
+
+# workflow ----
+#create workflow
+bikes_workflow <-
+  workflow() %>%
+  add_model(lm_mod) %>%
+  add_recipe(train_recipe_obj)
+
+#fit to training data
+bikes_fit <-
+  bikes_workflow %>%
+  fit(data = train_tbl)
+
+
+# metrics ----
+predictions <- predict(bikes_fit, new_data = test_tbl) %>%
+  bind_cols(test_tbl %>% select(price))
+
+metrics <- predictions %>%
+  yardstick::metrics(truth = price, estimate = .pred)
+
+metrics
+
+```

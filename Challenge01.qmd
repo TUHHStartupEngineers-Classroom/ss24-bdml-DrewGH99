@@ -1,5 +1,5 @@
 ---
-title: "My Lab Journal"
+title: "Machine Learning Fundamentals"
 subtitle: "Business Decisions with Machine Learning"
 author: "Drew Gilmore"
 ---

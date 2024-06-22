@@ -16,6 +16,8 @@ website:
         menu: 
           - text: "ML Challenge 1"
             file: Challenge01.qmd
+          - text: "ML Challenge 2"
+            file: Challenge02.qmd
           - text: "01 Tidyverse"
             file: content/01_journal/01_tidyverse.qmd
           - text: "02 Data Acquisition"
